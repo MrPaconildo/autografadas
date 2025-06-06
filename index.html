@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Camisas Autografadas</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      background-color: #f4f4f4;
+    }
+    header {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+    main {
+      padding: 2rem;
+    }
+    .description {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .shirt-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+    }
+    .shirt {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 1rem;
+      max-width: 400px;
+      flex: 1;
+    }
+    .shirt h2 {
+      text-align: center;
+    }
+    .gallery {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .gallery img {
+      max-height: 250px;
+      border-radius: 4px;
+      object-fit: contain;
+    }
+    .last-bid {
+      font-weight: bold;
+      margin: 1rem 0;
+      text-align: center;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      font-size: 1rem;
+      border-radius: 5px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0; top: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color: white;
+      margin: 10% auto;
+      padding: 20px;
+      width: 90%;
+      max-width: 400px;
+      border-radius: 10px;
+    }
+    .modal-content input {
+      width: 100%;
+      padding: 8px;
+      margin: 6px 0;
+    }
+    .close {
+      float: right;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    @media (max-width: 768px) {
+      .shirt-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Camisas Autografadas</h1>
+</header>
+<main>
+  <div class="description">
+    <p>Participe desta iniciativa e leve para casa uma destas Camisas Oficiais Autografadas!</p>
+    <p>Preencha o formulário com seu LANCE.<br>O maior lance até o dia 15/06 será o vencedor.<br>Qual camiseta vale mais?<br>Boa sorte!</p>
+  </div>
+  <div class="shirt-container">
+    <div class="shirt">
+      <h2>Camisa do Grêmio</h2>
+      <div class="gallery"><img src="Gremio.jpg" alt="Camisa Grêmio Autografada"></div>
+      <div class="last-bid">Último lance: R$ <span id="ultimo-lance-gremio">...</span></div>
+      <button onclick="abrirModal('Grêmio')">Enviar lance para o Grêmio</button>
+    </div>
+    <div class="shirt">
+      <h2>Camisa do Inter</h2>
+      <div class="gallery"><img src="Inter.jpg" alt="Camisa Internacional Autografada"></div>
+      <div class="last-bid">Último lance: R$ <span id="ultimo-lance-inter">...</span></div>
+      <button onclick="abrirModal('Internacional')">Enviar lance para o Internacional</button>
+    </div>
+  </div>
+</main>
+
+<div class="modal" id="modal-lance">
+  <div class="modal-content">
+    <span class="close" onclick="fecharModal()">&times;</span>
+    <h3 id="modal-titulo">Enviar Lance</h3>
+    <form onsubmit="enviarFormulario(event)">
+      <input type="hidden" id="camisa" />
+      <input type="text" id="nome" placeholder="Seu nome" required />
+      <input type="text" id="telefone" placeholder="Seu telefone" required />
+      <input type="number" step="0.01" id="lance" placeholder="Valor do lance (R$)" required />
+      <button type="submit">Enviar</button>
+    </form>
+    <p id="status-envio"></p>
+  </div>
+</div>
+
+<script>
+  const URL_WEBAPP = "https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec";
+
+  async function atualizarLances() {
+    try {
+      const res = await fetch(URL_WEBAPP);
+      const data = await res.json();
+      document.getElementById("ultimo-lance-gremio").textContent = data.highestBid.toFixed(2);
+      document.getElementById("ultimo-lance-inter").textContent = data.highestBid.toFixed(2);
+    } catch (e) {
+      console.error("Erro ao buscar lances:", e);
+    }
+  }
+
+  function abrirModal(camisa) {
+    document.getElementById("camisa").value = camisa;
+    document.getElementById("modal-titulo").textContent = "Enviar Lance - " + camisa;
+    document.getElementById("modal-lance").style.display = "block";
+  }
+
+  function fecharModal() {
+    document.getElementById("modal-lance").style.display = "none";
+    document.getElementById("status-envio").textContent = "";
+  }
+
+  async function enviarFormulario(event) {
+    event.preventDefault();
+    const dados = {
+      nome: document.getElementById("nome").value,
+      telefone: document.getElementById("telefone").value,
+      lance: document.getElementById("lance").value,
+      camisa: document.getElementById("camisa").value,
+    };
+
+    try {
+      const res = await fetch(URL_WEBAPP, {
+        method: "POST",
+        body: JSON.stringify(dados),
+        headers: { "Content-Type": "application/json" },
+      });
+      const json = await res.json();
+      if (json.status === "ok") {
+        document.getElementById("status-envio").textContent = "Lance enviado com sucesso!";
+        atualizarLances();
+      } else {
+        document.getElementById("status-envio").textContent = "Erro: " + json.mensagem;
+      }
+    } catch (e) {
+      document.getElementById("status-envio").textContent = "Erro ao enviar: " + e.message;
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", atualizarLances);
+</script>
+</body>
+</html>
