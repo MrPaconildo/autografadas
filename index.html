@@ -110,7 +110,41 @@
   </style>
 </head>
 <body>
-  <!-- (Mantenha todo o HTML anterior) -->
+<header>
+  <h1>Camisas Autografadas</h1>
+</header>
+<main>
+  <div class="description">
+    <p>Participe desta iniciativa e leve para casa uma destas Camisas Oficiais Autografadas!</p>
+    <p>Preencha o formulário com seu LANCE.<br>O maior lance até o dia 15/06 será o vencedor.<br>Qual camiseta vale mais?<br>Boa sorte!</p>
+  </div>
+
+  <div class="shirt-container">
+    <div class="shirt">
+      <h2>Camisa do Grêmio</h2>
+      <div class="gallery"><img src="Gremio.jpg" alt="Camisa Grêmio Autografada"></div>
+      <div class="last-bid">Último lance: R$ <span id="ultimo-lance-gremio">...</span></div>
+      <form onsubmit="enviarLance(event, 'Grêmio')">
+        <input type="text" name="nome" placeholder="Seu nome" required minlength="3">
+        <input type="text" name="telefone" placeholder="Seu telefone" required minlength="8">
+        <input type="number" name="lance" placeholder="Valor do lance" step="0.01" min="0.01" required>
+        <button type="submit">Enviar Lance</button>
+      </form>
+    </div>
+
+    <div class="shirt">
+      <h2>Camisa do Inter</h2>
+      <div class="gallery"><img src="Inter.jpg" alt="Camisa Internacional Autografada"></div>
+      <div class="last-bid">Último lance: R$ <span id="ultimo-lance-inter">...</span></div>
+      <form onsubmit="enviarLance(event, 'Inter')">
+        <input type="text" name="nome" placeholder="Seu nome" required minlength="3">
+        <input type="text" name="telefone" placeholder="Seu telefone" required minlength="8">
+        <input type="number" name="lance" placeholder="Valor do lance" step="0.01" min="0.01" required>
+        <button type="submit">Enviar Lance</button>
+      </form>
+    </div>
+  </div>
+</main>
 
   <script>
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec';
