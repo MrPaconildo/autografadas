@@ -3,228 +3,249 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Camisas Autografadas</title>
+  <title>Leilão de Camisas Autografadas</title>
   <style>
+    :root {
+      --gremio-color: #0a7b3a;
+      --inter-color: #c20e1a;
+    }
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    header {
+      background: linear-gradient(135deg, #333 0%, #111 100%);
+      color: white;
+      text-align: center;
+      padding: 1.5rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .camisa-card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+      width: 350px;
+      transition: transform 0.3s;
+    }
+    .camisa-card:hover {
+      transform: translateY(-5px);
+    }
+    .gremio { border-top: 5px solid var(--gremio-color); }
+    .inter { border-top: 5px solid var(--inter-color); }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5px;
+      padding: 10px;
+    }
+    .gallery img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .gallery img:hover {
+      transform: scale(1.03);
+    }
+    .main-image {
+      grid-column: span 2;
+      height: 250px;
+    }
+    .lance-info {
+      padding: 1rem;
+      text-align: center;
+    }
+    .maior-lance {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 0.5rem 0;
+    }
+    .gremio .maior-lance { color: var(--gremio-color); }
+    .inter .maior-lance { color: var(--inter-color); }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      padding: 1rem;
+      background: #f9f9f9;
+      border-radius: 0 0 10px 10px;
+    }
+    input, button {
+      padding: 0.8rem;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    button {
+      background: #333;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #555;
+    }
+    .gremio button { background: var(--gremio-color); }
+    .inter button { background: var(--inter-color); }
     .loading {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      background: #007bff;
+      background: rgba(0,0,0,0.8);
       color: white;
-      padding: 10px;
+      padding: 15px;
       text-align: center;
       z-index: 1000;
-    }
-      
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-    }
-    header {
-      background-color: #333;
-      color: white;
-      text-align: center;
-      padding: 1rem;
-    }
-    main {
-      padding: 2rem;
-    }
-    .description {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    .shirt-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 2rem;
-    }
-    .shirt {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      padding: 1rem;
-      max-width: 400px;
-      flex: 1;
-    }
-    .shirt h2 {
-      text-align: center;
-    }
-    .gallery {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-    .gallery img {
-      max-height: 250px;
-      border-radius: 4px;
-      object-fit: contain;
-    }
-    .last-bid {
-      font-weight: bold;
-      margin: 1rem 0;
-      text-align: center;
-    }
-    form {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-    input, button {
-      padding: 0.5rem;
-      font-size: 1rem;
-      border-radius: 4px;
-      border: 1px solid #ddd;
-    }
-    button {
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background-color 0.3s;
-    }
-    button:hover {
-      background-color: #0056b3;
-    }
-    button:disabled {
-      background-color: #cccccc;
-      cursor: not-allowed;
+      display: none;
     }
     @media (max-width: 768px) {
-      .shirt-container {
+      .container {
         flex-direction: column;
         align-items: center;
       }
-    }
-    .spinner {
-      display: inline-block;
-      width: 1em;
-      height: 1em;
-      border: 2px solid rgba(255,255,255,.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 5px;
-      vertical-align: middle;
-    }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    .error-message {
-      color: #dc3545;
-      font-size: 0.9rem;
-      margin-top: -0.5rem;
-      margin-bottom: 0.5rem;
+      .camisa-card {
+        width: 100%;
+        max-width: 400px;
+      }
     }
   </style>
 </head>
 <body>
-   <div id="loading" class="loading" style="display:none;">
-    <span class="spinner"></span> Enviando dados...
-  </div>
-  
-<header>
-  <h1>Camisas Autografadas</h1>
-</header>
-<main>
-  <div class="description">
-    <p>Participe desta iniciativa e leve para casa uma destas Camisas Oficiais Autografadas!</p>
-    <p>Preencha o formulário com seu LANCE.<br>O maior lance até o dia 15/06 será o vencedor.<br>Qual camiseta vale mais?<br>Boa sorte!</p>
+  <div id="loading" class="loading">
+    <span>Enviando lance...</span>
   </div>
 
-  <div class="shirt-container">
-    <div class="shirt">
-      <h2>Camisa do Grêmio</h2>
-      <div class="gallery"><img src="Gremio.jpg" alt="Camisa Grêmio Autografada"></div>
-      <div class="last-bid">Melhor lance: R$ <span id="ultimo-lance-gremio">...</span></div>
-      <form onsubmit="enviarLance(event, 'Grêmio')">
+  <header>
+    <h1>Leilão de Camisas Autografadas</h1>
+    <p>Lance nos itens abaixo e concorra a estas raridades!</p>
+  </header>
+
+  <div class="container">
+    <!-- Card Grêmio -->
+    <div class="camisa-card gremio">
+      <div class="gallery">
+        <img src="https://via.placeholder.com/400x300/0a7b3a/ffffff?text=Grêmio+Frente" class="main-image">
+        <img src="https://via.placeholder.com/200x150/0a7b3a/ffffff?text=Detalhe+1">
+        <img src="https://via.placeholder.com/200x150/0a7b3a/ffffff?text=Detalhe+2">
+      </div>
+      <div class="lance-info">
+        <h2>Camisa do Grêmio</h2>
+        <p>Autografada pelo elenco</p>
+        <div class="maior-lance">Maior lance: R$ <span id="maior-gremio">0,00</span></div>
+      </div>
+      <form onsubmit="enviarLance(event, 'gremio')">
         <input type="text" name="nome" placeholder="Seu nome" required minlength="3">
-        <input type="text" name="telefone" placeholder="Seu telefone" required minlength="8">
-        <input type="number" name="lance" placeholder="Valor do lance" step="0.01" min="0.01" required>
-        <button type="submit">Enviar Lance</button>
+        <input type="tel" name="telefone" placeholder="Seu telefone" required minlength="8">
+        <input type="number" name="lance" step="0.01" min="0.01" placeholder="Valor do lance" required>
+        <button type="submit">Fazer Lance</button>
       </form>
     </div>
 
-    <div class="shirt">
-      <h2>Camisa do Inter</h2>
-      <div class="gallery"><img src="Inter.jpg" alt="Camisa Internacional Autografada"></div>
-      <div class="last-bid">Mellhor lance: R$ <span id="ultimo-lance-inter">...</span></div>
-      <form onsubmit="enviarLance(event, 'Inter')">
+    <!-- Card Inter -->
+    <div class="camisa-card inter">
+      <div class="gallery">
+        <img src="https://via.placeholder.com/400x300/c20e1a/ffffff?text=Inter+Frente" class="main-image">
+        <img src="https://via.placeholder.com/200x150/c20e1a/ffffff?text=Detalhe+1">
+        <img src="https://via.placeholder.com/200x150/c20e1a/ffffff?text=Detalhe+2">
+      </div>
+      <div class="lance-info">
+        <h2>Camisa do Internacional</h2>
+        <p>Autografada pelo elenco</p>
+        <div class="maior-lance">Maior lance: R$ <span id="maior-inter">0,00</span></div>
+      </div>
+      <form onsubmit="enviarLance(event, 'inter')">
         <input type="text" name="nome" placeholder="Seu nome" required minlength="3">
-        <input type="text" name="telefone" placeholder="Seu telefone" required minlength="8">
-        <input type="number" name="lance" placeholder="Valor do lance" step="0.01" min="0.01" required>
-        <button type="submit">Enviar Lance</button>
+        <input type="tel" name="telefone" placeholder="Seu telefone" required minlength="8">
+        <input type="number" name="lance" step="0.01" min="0.01" placeholder="Valor do lance" required>
+        <button type="submit">Fazer Lance</button>
       </form>
     </div>
   </div>
 
-</main>
-
-  <iframe name="hidden-iframe" style="display:none;"></iframe>
- <script>
-const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec';
-
-async function enviarLance(event, camisa) {
-  event.preventDefault();
-  
-  const form = event.target;
-  const btn = form.querySelector('button');
-  btn.disabled = true;
-  
-  try {
-    // Dados do formulário
-    const dados = {
-      nome: form.nome.value,
-      telefone: form.telefone.value,
-      lance: form.lance.value.replace(',', '.'),
-      camisa: camisa
-    };
+  <script>
+    const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec';
     
-    // Envio tradicional (funciona melhor com Apps Script)
-    const resposta = await fetch(URL_SCRIPT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(dados)
-    });
-    
-    const resultado = await resposta.json();
-    
-    if (resultado.status === 'success') {
-      alert('✅ Lance registrado!');
-      form.reset();
-      buscarLances(); // Atualiza os valores
-    } else {
-      throw new Error(resultado.message);
+    // Formata números para o padrão brasileiro
+    function formatarMoeda(valor) {
+      return parseFloat(valor).toFixed(2).replace('.', ',');
     }
-    
-  } catch (error) {
-    alert('❌ Erro: ' + error.message);
-  } finally {
-    btn.disabled = false;
-  }
-}
 
-async function buscarLances() {
-  try {
-    const resposta = await fetch(URL_SCRIPT + '?' + new Date().getTime());
-    const dados = await resposta.json();
-    
-    document.getElementById('ultimo-lance-gremio').textContent = 
-      dados.gremio.toFixed(2).replace('.', ',');
-    document.getElementById('ultimo-lance-inter').textContent = 
-      dados.inter.toFixed(2).replace('.', ',');
+    // Envia os lances
+    async function enviarLance(event, time) {
+      event.preventDefault();
+      const form = event.target;
+      const loading = document.getElementById('loading');
       
-  } catch (error) {
-    console.log('Erro ao buscar lances:', error);
-  }
-}
+      try {
+        loading.style.display = 'block';
+        form.querySelector('button').disabled = true;
+        
+        const dados = {
+          nome: form.nome.value.trim(),
+          telefone: form.telefone.value.trim(),
+          lance: form.lance.value.replace(',', '.'),
+          camisa: time
+        };
+        
+        const resposta = await fetch(URL_SCRIPT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(dados)
+        });
+        
+        const resultado = await resposta.json();
+        
+        if (resultado.status !== 'success') {
+          throw new Error(resultado.message);
+        }
+        
+        alert('Lance registrado com sucesso!');
+        form.reset();
+        buscarLances();
+        
+      } catch (error) {
+        alert('Erro: ' + error.message);
+        console.error(error);
+      } finally {
+        loading.style.display = 'none';
+        form.querySelector('button').disabled = false;
+      }
+    }
 
-// Atualiza a cada 30 segundos
-setInterval(buscarLances, 30000);
-document.addEventListener('DOMContentLoaded', buscarLances);
-</script>
+    // Busca os maiores lances
+    async function buscarLances() {
+      try {
+        const resposta = await fetch(URL_SCRIPT + '?t=' + Date.now());
+        const dados = await resposta.json();
+        
+        document.getElementById('maior-gremio').textContent = formatarMoeda(dados.gremio);
+        document.getElementById('maior-inter').textContent = formatarMoeda(dados.inter);
+        
+      } catch (error) {
+        console.error('Erro ao buscar lances:', error);
+      }
+    }
+
+    // Atualiza a cada 30 segundos e ao carregar
+    setInterval(buscarLances, 30000);
+    document.addEventListener('DOMContentLoaded', buscarLances);
+  </script>
 </body>
 </html>
