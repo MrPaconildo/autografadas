@@ -122,60 +122,72 @@
 <script>
 async function enviarLance(event, camisa) {
   event.preventDefault();
-
+  
   const form = event.target;
-  const nome = form.nome.value;
-  const telefone = form.telefone.value;
-  const lance = form.lance.value;
-
-  const formData = new URLSearchParams();
-  formData.append("nome", nome);
-  formData.append("telefone", telefone);
-  formData.append("lance", lance);
-  formData.append("camisa", camisa);
-
+  const button = form.querySelector('button[type="submit"]');
+  const originalButtonText = button.textContent;
+  
+  // Mostra feedback visual
+  button.disabled = true;
+  button.textContent = 'Enviando...';
+  
   try {
+    const formData = new FormData(form);
+    formData.append('camisa', camisa);
+    
     const response = await fetch("https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
-      },
-      body: formData
+      body: new URLSearchParams(formData)
     });
-
-    const text = await response.text();
-    const data = JSON.parse(text);
-
-    if (data.status === 'sucesso') {
-      alert(data.mensagem);
+    
+    const result = await response.json();
+    
+    if (result.status === 'sucesso') {
+      alert(result.mensagem);
       form.reset();
-      atualizarLances(); // Atualiza os valores
+      await atualizarLances();
     } else {
-      alert("Erro: " + data.mensagem);
+      throw new Error(result.mensagem);
     }
-
   } catch (error) {
-    alert("Erro na submissão: " + error.message);
+    alert("Erro: " + error.message);
+    console.error("Erro no envio:", error);
+  } finally {
+    button.disabled = false;
+    button.textContent = originalButtonText;
   }
 }
 
 async function atualizarLances() {
   try {
-    const res = await fetch('https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec');
-    const data = await res.json();
-
-    if (data.status === 'sucesso') {
-      document.getElementById("ultimo-lance-gremio").textContent = data.gremio.toFixed(2);
-      document.getElementById("ultimo-lance-inter").textContent = data.inter.toFixed(2);
-    } else {
-      console.error("Erro na resposta do servidor:", data.mensagem);
+    const response = await fetch('https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec');
+    
+    if (!response.ok) {
+      throw new Error('Falha ao carregar lances');
     }
-  } catch (e) {
-    console.error("Erro ao buscar lances:", e);
+    
+    const data = await response.json();
+    
+    if (data.status === 'sucesso') {
+      document.getElementById("ultimo-lance-gremio").textContent = 
+        data.gremio ? data.gremio.toFixed(2) : '0.00';
+      document.getElementById("ultimo-lance-inter").textContent = 
+        data.inter ? data.inter.toFixed(2) : '0.00';
+    } else {
+      throw new Error(data.mensagem);
+    }
+  } catch (error) {
+    console.error("Erro ao atualizar lances:", error);
+    document.getElementById("ultimo-lance-gremio").textContent = 'Erro';
+    document.getElementById("ultimo-lance-inter").textContent = 'Erro';
   }
 }
 
-document.addEventListener("DOMContentLoaded", atualizarLances);
+// Atualiza os lances ao carregar e a cada 30 segundos
+document.addEventListener("DOMContentLoaded", () => {
+  atualizarLances();
+  setInterval(atualizarLances, 30000);
+});
 </script>
 </body>
 </html>
