@@ -7,9 +7,9 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
       margin: 0;
       padding: 0;
+      background-color: #f4f4f4;
     }
     header {
       background-color: #333;
@@ -56,7 +56,7 @@
       margin: 1rem 0;
       text-align: center;
     }
-    .button {
+    button {
       width: 100%;
       padding: 10px;
       font-size: 1rem;
@@ -66,35 +66,26 @@
       border: none;
       cursor: pointer;
     }
-    .button:hover {
+    button:hover {
       background-color: #0056b3;
     }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
+    form {
+      margin-top: 1rem;
+    }
+    label {
+      display: block;
+      margin: 0.5rem 0 0.2rem;
+    }
+    input {
       width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
+      padding: 0.5rem;
+      margin-bottom: 1rem;
     }
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 400px;
-      margin: 10% auto;
-    }
-    .modal-content input {
-      width: 100%;
-      padding: 8px;
-      margin: 8px 0;
-    }
-    .close {
-      float: right;
-      cursor: pointer;
-      font-size: 20px;
+    @media (max-width: 768px) {
+      .shirt-container {
+        flex-direction: column;
+        align-items: center;
+      }
     }
   </style>
 </head>
@@ -105,108 +96,89 @@
 <main>
   <div class="description">
     <p>Participe desta iniciativa e leve para casa uma destas Camisas Oficiais Autografadas!</p>
-    <p>Preencha o formulário com seu LANCE.<br>O maior lance até o dia 15/06 será o vencedor.<br>Qual camiseta vale mais? Boa sorte!</p>
+    <p>Preencha o formulário com seu LANCE.<br>O maior lance até o dia 15/06 será o vencedor.<br>Qual camiseta vale mais?<br>Boa sorte!</p>
   </div>
   <div class="shirt-container">
     <div class="shirt">
       <h2>Camisa do Grêmio</h2>
       <div class="gallery"><img src="Gremio.jpg" alt="Camisa Grêmio Autografada"></div>
       <div class="last-bid">Último lance: R$ <span id="ultimo-lance-gremio">...</span></div>
-      <button class="button" onclick="abrirModal('Grêmio')">Dar lance no Grêmio</button>
+      <form id="form-gremio" onsubmit="enviarLance(event, 'grêmio')">
+        <label for="nome-g">Nome:</label>
+        <input type="text" id="nome-g" required />
+        <label for="telefone-g">Telefone:</label>
+        <input type="tel" id="telefone-g" required />
+        <label for="lance-g">Lance (R$):</label>
+        <input type="number" id="lance-g" required />
+        <button type="submit">Enviar lance para o Grêmio</button>
+      </form>
     </div>
     <div class="shirt">
       <h2>Camisa do Inter</h2>
-      <div class="gallery"><img src="Inter.jpg" alt="Camisa Inter Autografada"></div>
+      <div class="gallery"><img src="Inter.jpg" alt="Camisa Internacional Autografada"></div>
       <div class="last-bid">Último lance: R$ <span id="ultimo-lance-inter">...</span></div>
-      <button class="button" onclick="abrirModal('Inter')">Dar lance no Inter</button>
+      <form id="form-inter" onsubmit="enviarLance(event, 'inter')">
+        <label for="nome-i">Nome:</label>
+        <input type="text" id="nome-i" required />
+        <label for="telefone-i">Telefone:</label>
+        <input type="tel" id="telefone-i" required />
+        <label for="lance-i">Lance (R$):</label>
+        <input type="number" id="lance-i" required />
+        <button type="submit">Enviar lance para o Inter</button>
+      </form>
     </div>
   </div>
 </main>
 
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="fecharModal()">&times;</span>
-    <h3>Enviar Lance</h3>
-    <form id="formulario" onsubmit="enviarLance(event)">
-      <input type="text" id="form-nome" name="nome" placeholder="Seu nome" required />
-      <input type="text" id="form-telefone" name="telefone" placeholder="Telefone" required />
-      <input type="number" id="form-lance" name="lance" placeholder="Valor do lance" required min="1" step="0.01" />
-      <input type="hidden" id="form-camisa" name="camisa" />
-      <button type="submit" class="button">Enviar</button>
-    </form>
-  </div>
-</div>
-
 <script>
   const apiUrl = "https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec";
-
-  function abrirModal(camisa) {
-    document.getElementById("formulario").reset();
-    document.getElementById("form-camisa").value = camisa;
-    document.getElementById("modal").style.display = "block";
-  }
-
-  function fecharModal() {
-    document.getElementById("modal").style.display = "none";
-  }
 
   async function atualizarLances() {
     try {
       const res = await fetch(apiUrl);
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        throw new Error(`Resposta inválida do servidor: ${text}`);
-      }
-
-      if (data && data.status === 'sucesso') {
-        document.getElementById("ultimo-lance-gremio").textContent = data.gremio?.toFixed(2) || '0.00';
-        document.getElementById("ultimo-lance-inter").textContent = data.inter?.toFixed(2) || '0.00';
+      const data = await res.json();
+      if (data.status === 'sucesso') {
+        document.getElementById("ultimo-lance-gremio").textContent = data.gremio.toFixed(2);
+        document.getElementById("ultimo-lance-inter").textContent = data.inter.toFixed(2);
       } else {
-        document.getElementById("ultimo-lance-gremio").textContent = 'Erro';
-        document.getElementById("ultimo-lance-inter").textContent = 'Erro';
+        console.error("Erro na resposta do servidor:", data.mensagem);
       }
     } catch (e) {
       console.error("Erro ao buscar lances:", e);
-      document.getElementById("ultimo-lance-gremio").textContent = 'Erro';
-      document.getElementById("ultimo-lance-inter").textContent = 'Erro';
     }
   }
 
-  async function enviarLance(event) {
-  event.preventDefault();
-  const nome = document.getElementById("form-nome").value;
-  const telefone = document.getElementById("form-telefone").value;
-  const lance = document.getElementById("form-lance").value;
-  const camisa = document.getElementById("form-camisa").value;
+  async function enviarLance(event, camisa) {
+    event.preventDefault();
+    const prefix = camisa === 'grêmio' ? 'g' : 'i';
+    const nome = document.getElementById(`nome-${prefix}`).value.trim();
+    const telefone = document.getElementById(`telefone-${prefix}`).value.trim();
+    const lance = document.getElementById(`lance-${prefix}`).value.trim();
 
-  const formData = new URLSearchParams();
-  formData.append("nome", nome);
-  formData.append("telefone", telefone);
-  formData.append("lance", lance);
-  formData.append("camisa", camisa);
+    const formData = new URLSearchParams();
+    formData.append("nome", nome);
+    formData.append("telefone", telefone);
+    formData.append("lance", lance);
+    formData.append("camisa", camisa);
 
-  try {
-    const res = await fetch(apiUrl, {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch(apiUrl, {
+        method: "POST",
+        body: formData
+      });
 
-    const result = await res.json(); // ✅ aqui está a correção
+      const result = await res.json(); // ✅ CORRETO
 
-    alert(result.mensagem || "Lance enviado!");
+      alert(result.mensagem || "Lance enviado com sucesso!");
 
-    if (result.status === 'sucesso') {
-      fecharModal();
-      atualizarLances();
+      if (result.status === 'sucesso') {
+        atualizarLances();
+        event.target.reset();
+      }
+    } catch (error) {
+      alert("Erro ao enviar lance: " + error.message);
     }
-  } catch (error) {
-    alert("Erro ao enviar lance: " + error.message);
   }
-}
-
 
   document.addEventListener("DOMContentLoaded", atualizarLances);
 </script>
