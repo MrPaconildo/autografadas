@@ -161,81 +161,66 @@
 
   <iframe name="hidden-iframe" style="display:none;"></iframe>
  <script>
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec';
+const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec';
 
-    // Função para mostrar loading
-    function showLoading(show) {
-      document.getElementById('loading').style.display = show ? 'block' : 'none';
-    }
-
-    // Função principal para enviar lances
-    function enviarLance(event, camisa) {
-      event.preventDefault();
-      showLoading(true);
-      
-      const form = event.target;
-      const formData = new FormData(form);
-      formData.append('camisa', camisa);
-      
-      // Cria um iframe para receber a resposta
-      const iframe = document.createElement('iframe');
-      iframe.name = 'response-iframe';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-      
-      // Cria um formulário temporário
-      const tempForm = document.createElement('form');
-      tempForm.method = 'POST';
-      tempForm.action = WEB_APP_URL;
-      tempForm.target = 'response-iframe';
-      tempForm.style.display = 'none';
-      
-      // Adiciona os dados ao formulário
-      for (const [key, value] of formData.entries()) {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = value;
-        tempForm.appendChild(input);
-      }
-      
-      document.body.appendChild(tempForm);
-      
-      // Configura o listener para a resposta
-      iframe.onload = function() {
-        showLoading(false);
-        atualizarLances();
-        alert('Lance registrado com sucesso!');
-        form.reset();
-        document.body.removeChild(iframe);
-        document.body.removeChild(tempForm);
-      };
-      
-      tempForm.submit();
-    }
-
-    // Função para atualizar os lances (usando JSONP)
-    function atualizarLances() {
-      const script = document.createElement('script');
-      script.src = `${WEB_APP_URL}?callback=mostrarLances&t=${Date.now()}`;
-      document.body.appendChild(script);
-    }
-
-    // Callback para processar os lances
-    window.mostrarLances = function(data) {
-      if (data.status === 'success') {
-        document.getElementById('ultimo-lance-gremio').textContent = 
-          data.gremio.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-        document.getElementById('ultimo-lance-inter').textContent = 
-          data.inter.toLocaleString('pt-BR', {minimumFractionDigits: 2});
-      }
+async function enviarLance(event, camisa) {
+  event.preventDefault();
+  
+  const form = event.target;
+  const btn = form.querySelector('button');
+  btn.disabled = true;
+  
+  try {
+    // Dados do formulário
+    const dados = {
+      nome: form.nome.value,
+      telefone: form.telefone.value,
+      lance: form.lance.value.replace(',', '.'),
+      camisa: camisa
     };
-
-    // Inicialização
-    document.addEventListener('DOMContentLoaded', function() {
-      atualizarLances();
-      setInterval(atualizarLances, 30000); // Atualiza a cada 30 segundos
+    
+    // Envio tradicional (funciona melhor com Apps Script)
+    const resposta = await fetch(URL_SCRIPT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(dados)
     });
-  </script>
+    
+    const resultado = await resposta.json();
+    
+    if (resultado.status === 'success') {
+      alert('✅ Lance registrado!');
+      form.reset();
+      buscarLances(); // Atualiza os valores
+    } else {
+      throw new Error(resultado.message);
+    }
+    
+  } catch (error) {
+    alert('❌ Erro: ' + error.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function buscarLances() {
+  try {
+    const resposta = await fetch(URL_SCRIPT + '?' + new Date().getTime());
+    const dados = await resposta.json();
+    
+    document.getElementById('ultimo-lance-gremio').textContent = 
+      dados.gremio.toFixed(2).replace('.', ',');
+    document.getElementById('ultimo-lance-inter').textContent = 
+      dados.inter.toFixed(2).replace('.', ',');
+      
+  } catch (error) {
+    console.log('Erro ao buscar lances:', error);
+  }
+}
+
+// Atualiza a cada 30 segundos
+setInterval(buscarLances, 30000);
+document.addEventListener('DOMContentLoaded', buscarLances);
+</script>
 </body>
 </html>
