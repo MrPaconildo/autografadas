@@ -5,7 +5,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Camisas Autografadas</title>
   <style>
-    /* (Mantenha todo o CSS anterior) */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f4;
+    }
+    header {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+    main {
+      padding: 2rem;
+    }
+    .description {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .shirt-container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+    }
+    .shirt {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      padding: 1rem;
+      max-width: 400px;
+      flex: 1;
+    }
+    .shirt h2 {
+      text-align: center;
+    }
+    .gallery {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+    .gallery img {
+      max-height: 250px;
+      border-radius: 4px;
+      object-fit: contain;
+    }
+    .last-bid {
+      font-weight: bold;
+      margin: 1rem 0;
+      text-align: center;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    input, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    @media (max-width: 768px) {
+      .shirt-container {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
+    .spinner {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .error-message {
+      color: #dc3545;
+      font-size: 0.9rem;
+      margin-top: -0.5rem;
+      margin-bottom: 0.5rem;
+    }
   </style>
 </head>
 <body>
