@@ -1,219 +1,69 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Camisas Autografadas</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background-color: #333;
-      color: white;
-      text-align: center;
-      padding: 1rem;
-    }
-    main {
-      padding: 2rem;
-    }
-    .description {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-    .shirt-container {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 2rem;
-    }
-    .shirt {
-      background: white;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      padding: 1rem;
-      max-width: 400px;
-      flex: 1;
-    }
-    .shirt h2 {
-      text-align: center;
-    }
-    .gallery {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1rem;
-    }
-    .gallery img {
-      max-height: 250px;
-      border-radius: 4px;
-      object-fit: contain;
-    }
-    .last-bid {
-      font-weight: bold;
-      margin: 1rem 0;
-      text-align: center;
-    }
-    .button {
-      width: 100%;
-      padding: 10px;
-      font-size: 1rem;
-      border-radius: 5px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .button:hover {
-      background-color: #0056b3;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
-    }
-    .modal-content {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      max-width: 400px;
-      margin: 10% auto;
-    }
-    .modal-content input {
-      width: 100%;
-      padding: 8px;
-      margin: 8px 0;
-    }
-    .close {
-      float: right;
-      cursor: pointer;
-      font-size: 20px;
-    }
-  </style>
-</head>
-<body>
-<header>
-  <h1>Camisas Autografadas</h1>
-</header>
-<main>
-  <div class="description">
-    <p>Participe desta iniciativa e leve para casa uma destas Camisas Oficiais Autografadas!</p>
-    <p>Preencha o formulário com seu LANCE.<br>O maior lance até o dia 15/06 será o vencedor.<br>Qual camiseta vale mais? Boa sorte!</p>
-  </div>
-  <div class="shirt-container">
-    <div class="shirt">
-      <h2>Camisa do Grêmio</h2>
-      <div class="gallery"><img src="Gremio.jpg" alt="Camisa Grêmio Autografada"></div>
-      <div class="last-bid">Último lance: R$ <span id="ultimo-lance-gremio">...</span></div>
-      <button class="button" onclick="abrirModal('Grêmio')">Dar lance no Grêmio</button>
-    </div>
-    <div class="shirt">
-      <h2>Camisa do Inter</h2>
-      <div class="gallery"><img src="Inter.jpg" alt="Camisa Inter Autografada"></div>
-      <div class="last-bid">Último lance: R$ <span id="ultimo-lance-inter">...</span></div>
-      <button class="button" onclick="abrirModal('Inter')">Dar lance no Inter</button>
-    </div>
-  </div>
-</main>
+function doPost(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getActiveSheet();
 
-<div id="modal" class="modal">
-  <div class="modal-content">
-    <span class="close" onclick="fecharModal()">&times;</span>
-    <h3>Enviar Lance</h3>
-    <form id="formulario" onsubmit="enviarLance(event)">
-      <input type="text" id="form-nome" name="nome" placeholder="Seu nome" required />
-      <input type="text" id="form-telefone" name="telefone" placeholder="Telefone" required />
-      <input type="number" id="form-lance" name="lance" placeholder="Valor do lance" required min="1" step="0.01" />
-      <input type="hidden" id="form-camisa" name="camisa" />
-      <button type="submit" class="button">Enviar</button>
-    </form>
-  </div>
-</div>
+    const nome = e.parameter.nome;
+    const telefone = e.parameter.telefone;
+    const lance = parseFloat(e.parameter.lance);
+    const camisa = e.parameter.camisa;
 
-<script>
-  const apiUrl = "https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec";
+    if (!nome || !telefone || isNaN(lance) || !camisa) {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'erro', mensagem: 'Dados inválidos' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
 
-  function abrirModal(camisa) {
-    document.getElementById("formulario").reset();
-    document.getElementById("form-camisa").value = camisa;
-    document.getElementById("modal").style.display = "block";
+    const timestamp = new Date();
+
+    // Adiciona a nova linha com a data/hora na primeira coluna
+    sheet.appendRow([timestamp, nome, telefone, lance, camisa]);
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'sucesso', mensagem: 'Lance enviado com sucesso!' }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'erro', mensagem: error.message }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
+}
 
-  function fecharModal() {
-    document.getElementById("modal").style.display = "none";
-  }
+function doGet() {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getActiveSheet();
+    const data = sheet.getDataRange().getValues();
 
-  async function atualizarLances() {
-    try {
-      const res = await fetch(apiUrl);
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch (e) {
-        throw new Error(`Resposta inválida do servidor: ${text}`);
+    let highestGremio = 0;
+    let highestInter = 0;
+
+    // Começa da linha 2 (índice 1), já que a linha 1 é cabeçalho
+    for (let i = 1; i < data.length; i++) {
+      const camisa = data[i][4]?.toString().toLowerCase().trim(); // Coluna E (índice 4)
+      const lance = parseFloat(data[i][3]); // Coluna D (índice 3)
+
+      if (!isNaN(lance)) {
+        if (camisa === 'grêmio' || camisa === 'gremio') {
+          if (lance > highestGremio) highestGremio = lance;
+        } else if (camisa === 'inter' || camisa === 'internacional') {
+          if (lance > highestInter) highestInter = lance;
+        }
       }
-
-      if (data && data.status === 'sucesso') {
-        document.getElementById("ultimo-lance-gremio").textContent = data.gremio?.toFixed(2) || '0.00';
-        document.getElementById("ultimo-lance-inter").textContent = data.inter?.toFixed(2) || '0.00';
-      } else {
-        document.getElementById("ultimo-lance-gremio").textContent = 'Erro';
-        document.getElementById("ultimo-lance-inter").textContent = 'Erro';
-      }
-    } catch (e) {
-      console.error("Erro ao buscar lances:", e);
-      document.getElementById("ultimo-lance-gremio").textContent = 'Erro';
-      document.getElementById("ultimo-lance-inter").textContent = 'Erro';
     }
+
+    return ContentService
+      .createTextOutput(JSON.stringify({
+        status: 'sucesso',
+        gremio: highestGremio,
+        inter: highestInter
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: 'erro', mensagem: error.message }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-
-  async function enviarLance(event) {
-    event.preventDefault();
-    const nome = document.getElementById("form-nome").value;
-    const telefone = document.getElementById("form-telefone").value;
-    const lance = document.getElementById("form-lance").value;
-    const camisa = document.getElementById("form-camisa").value;
-
-    const formData = new URLSearchParams();
-    formData.append("nome", nome);
-    formData.append("telefone", telefone);
-    formData.append("lance", lance);
-    formData.append("camisa", camisa);
-
-    try {
-      const res = await fetch(apiUrl, {
-        method: "POST",
-        body: formData
-      });
-
-      const text = await res.text();
-      let result;
-      try {
-        result = JSON.parse(text);
-      } catch (e) {
-        alert("Erro inesperado ao interpretar resposta do servidor.");
-        return;
-      }
-
-      alert(result.mensagem || "Lance enviado!");
-      if (result.status === 'sucesso') {
-        fecharModal();
-        atualizarLances();
-      }
-    } catch (error) {
-      alert("Erro ao enviar lance: " + error.message);
-    }
-  }
-
-  document.addEventListener("DOMContentLoaded", atualizarLances);
-</script>
-</body>
-</html>
+}
