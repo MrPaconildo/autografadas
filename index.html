@@ -5,6 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Camisas Autografadas</title>
   <style>
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      background: #007bff;
+      color: white;
+      padding: 10px;
+      text-align: center;
+      z-index: 1000;
     body {
       font-family: Arial, sans-serif;
       margin: 0;
@@ -110,6 +120,7 @@
   </style>
 </head>
 <body>
+  
 <header>
   <h1>Camisas Autografadas</h1>
 </header>
@@ -145,84 +156,84 @@
     </div>
   </div>
 </main>
+<div id="loading" class="loading" style="display:none;">Enviando dados...</div>
 
-  <script>
+  <iframe name="hidden-iframe" style="display:none;"></iframe>
+ <script>
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec';
 
-    // Método à prova de falhas usando formulário HTML tradicional
+    // Função para mostrar loading
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+
+    // Função principal para enviar lances
     function enviarLance(event, camisa) {
       event.preventDefault();
+      showLoading(true);
       
       const form = event.target;
-      const button = form.querySelector('button[type="submit"]');
-      button.disabled = true;
-      button.innerHTML = '<span class="spinner"></span> Enviando...';
-
+      const formData = new FormData(form);
+      formData.append('camisa', camisa);
+      
+      // Cria um iframe para receber a resposta
+      const iframe = document.createElement('iframe');
+      iframe.name = 'response-iframe';
+      iframe.style.display = 'none';
+      document.body.appendChild(iframe);
+      
       // Cria um formulário temporário
       const tempForm = document.createElement('form');
-      tempForm.style.display = 'none';
       tempForm.method = 'POST';
       tempForm.action = WEB_APP_URL;
-      tempForm.target = 'hiddenFrame';
+      tempForm.target = 'response-iframe';
+      tempForm.style.display = 'none';
       
-      // Adiciona campos
-      const addField = (name, value) => {
+      // Adiciona os dados ao formulário
+      for (const [key, value] of formData.entries()) {
         const input = document.createElement('input');
         input.type = 'hidden';
-        input.name = name;
+        input.name = key;
         input.value = value;
         tempForm.appendChild(input);
-      };
-      
-      addField('nome', form.nome.value);
-      addField('telefone', form.telefone.value);
-      addField('lance', form.lance.value.replace(',', '.'));
-      addField('camisa', camisa);
+      }
       
       document.body.appendChild(tempForm);
-      tempForm.submit();
       
-      // Atualiza após 3 segundos (tempo estimado para processamento)
-      setTimeout(() => {
+      // Configura o listener para a resposta
+      iframe.onload = function() {
+        showLoading(false);
         atualizarLances();
-        button.disabled = false;
-        button.textContent = 'Enviar Lance';
+        alert('Lance registrado com sucesso!');
         form.reset();
-        alert('Lance enviado com sucesso!');
-      }, 3000);
+        document.body.removeChild(iframe);
+        document.body.removeChild(tempForm);
+      };
+      
+      tempForm.submit();
     }
 
-    // Método alternativo para buscar lances
-    async function atualizarLances() {
-      try {
-        const script = document.createElement('script');
-        script.src = `${WEB_APP_URL}?callback=processarLances&q=${Date.now()}`;
-        document.body.appendChild(script);
-      } catch (error) {
-        console.error('Erro ao atualizar:', error);
-      }
+    // Função para atualizar os lances (usando JSONP)
+    function atualizarLances() {
+      const script = document.createElement('script');
+      script.src = `${WEB_APP_URL}?callback=mostrarLances&t=${Date.now()}`;
+      document.body.appendChild(script);
     }
 
-    // Função de callback para o JSONP
-    window.processarLances = function(data) {
+    // Callback para processar os lances
+    window.mostrarLances = function(data) {
       if (data.status === 'success') {
-        document.getElementById("ultimo-lance-gremio").textContent = 
-          data.gremio.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-        document.getElementById("ultimo-lance-inter").textContent = 
-          data.inter.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        document.getElementById('ultimo-lance-gremio').textContent = 
+          data.gremio.toLocaleString('pt-BR', {minimumFractionDigits: 2});
+        document.getElementById('ultimo-lance-inter').textContent = 
+          data.inter.toLocaleString('pt-BR', {minimumFractionDigits: 2});
       }
     };
 
     // Inicialização
-    document.addEventListener("DOMContentLoaded", () => {
-      // Cria iframe oculto para envio de formulários
-      const iframe = document.createElement('iframe');
-      iframe.name = 'hiddenFrame';
-      iframe.style.display = 'none';
-      document.body.appendChild(iframe);
-      
+    document.addEventListener('DOMContentLoaded', function() {
       atualizarLances();
-      setInterval(atualizarLances, 15000);
+      setInterval(atualizarLances, 30000); // Atualiza a cada 30 segundos
     });
   </script>
 </body>
