@@ -56,11 +56,16 @@
       margin: 1rem 0;
       text-align: center;
     }
-    button {
-      width: 100%;
-      padding: 10px;
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    input, button {
+      padding: 0.5rem;
       font-size: 1rem;
-      border-radius: 5px;
+    }
+    button {
       background-color: #007bff;
       color: white;
       border: none;
@@ -68,18 +73,6 @@
     }
     button:hover {
       background-color: #0056b3;
-    }
-    form {
-      margin-top: 1rem;
-    }
-    label {
-      display: block;
-      margin: 0.5rem 0 0.2rem;
-    }
-    input {
-      width: 100%;
-      padding: 0.5rem;
-      margin-bottom: 1rem;
     }
     @media (max-width: 768px) {
       .shirt-container {
@@ -98,89 +91,91 @@
     <p>Participe desta iniciativa e leve para casa uma destas Camisas Oficiais Autografadas!</p>
     <p>Preencha o formulário com seu LANCE.<br>O maior lance até o dia 15/06 será o vencedor.<br>Qual camiseta vale mais?<br>Boa sorte!</p>
   </div>
+
   <div class="shirt-container">
     <div class="shirt">
       <h2>Camisa do Grêmio</h2>
       <div class="gallery"><img src="Gremio.jpg" alt="Camisa Grêmio Autografada"></div>
       <div class="last-bid">Último lance: R$ <span id="ultimo-lance-gremio">...</span></div>
-      <form id="form-gremio" onsubmit="enviarLance(event, 'grêmio')">
-        <label for="nome-g">Nome:</label>
-        <input type="text" id="nome-g" required />
-        <label for="telefone-g">Telefone:</label>
-        <input type="tel" id="telefone-g" required />
-        <label for="lance-g">Lance (R$):</label>
-        <input type="number" id="lance-g" required />
-        <button type="submit">Enviar lance para o Grêmio</button>
+      <form onsubmit="enviarLance(event, 'Grêmio')">
+        <input type="text" name="nome" placeholder="Seu nome" required>
+        <input type="text" name="telefone" placeholder="Seu telefone" required>
+        <input type="number" name="lance" placeholder="Valor do lance" required>
+        <button type="submit">Enviar Lance</button>
       </form>
     </div>
+
     <div class="shirt">
       <h2>Camisa do Inter</h2>
       <div class="gallery"><img src="Inter.jpg" alt="Camisa Internacional Autografada"></div>
       <div class="last-bid">Último lance: R$ <span id="ultimo-lance-inter">...</span></div>
-      <form id="form-inter" onsubmit="enviarLance(event, 'inter')">
-        <label for="nome-i">Nome:</label>
-        <input type="text" id="nome-i" required />
-        <label for="telefone-i">Telefone:</label>
-        <input type="tel" id="telefone-i" required />
-        <label for="lance-i">Lance (R$):</label>
-        <input type="number" id="lance-i" required />
-        <button type="submit">Enviar lance para o Inter</button>
+      <form onsubmit="enviarLance(event, 'Inter')">
+        <input type="text" name="nome" placeholder="Seu nome" required>
+        <input type="text" name="telefone" placeholder="Seu telefone" required>
+        <input type="number" name="lance" placeholder="Valor do lance" required>
+        <button type="submit">Enviar Lance</button>
       </form>
     </div>
   </div>
 </main>
 
 <script>
-  const apiUrl = "https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec";
+async function enviarLance(event, camisa) {
+  event.preventDefault();
 
-  async function atualizarLances() {
-    try {
-      const res = await fetch(apiUrl);
-      const data = await res.json();
-      if (data.status === 'sucesso') {
-        document.getElementById("ultimo-lance-gremio").textContent = data.gremio.toFixed(2);
-        document.getElementById("ultimo-lance-inter").textContent = data.inter.toFixed(2);
-      } else {
-        console.error("Erro na resposta do servidor:", data.mensagem);
-      }
-    } catch (e) {
-      console.error("Erro ao buscar lances:", e);
+  const form = event.target;
+  const nome = form.nome.value;
+  const telefone = form.telefone.value;
+  const lance = form.lance.value;
+
+  const formData = new URLSearchParams();
+  formData.append("nome", nome);
+  formData.append("telefone", telefone);
+  formData.append("lance", lance);
+  formData.append("camisa", camisa);
+
+  try {
+    const response = await fetch("https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: formData
+    });
+
+    const text = await response.text();
+    const data = JSON.parse(text);
+
+    if (data.status === 'sucesso') {
+      alert(data.mensagem);
+      form.reset();
+      atualizarLances(); // Atualiza os valores
+    } else {
+      alert("Erro: " + data.mensagem);
     }
+
+  } catch (error) {
+    alert("Erro na submissão: " + error.message);
   }
+}
 
-  async function enviarLance(event, camisa) {
-    event.preventDefault();
-    const prefix = camisa === 'grêmio' ? 'g' : 'i';
-    const nome = document.getElementById(`nome-${prefix}`).value.trim();
-    const telefone = document.getElementById(`telefone-${prefix}`).value.trim();
-    const lance = document.getElementById(`lance-${prefix}`).value.trim();
+async function atualizarLances() {
+  try {
+    const res = await fetch('https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec');
+    const data = await res.json();
 
-    const formData = new URLSearchParams();
-    formData.append("nome", nome);
-    formData.append("telefone", telefone);
-    formData.append("lance", lance);
-    formData.append("camisa", camisa);
-
-    try {
-      const res = await fetch(apiUrl, {
-        method: "POST",
-        body: formData
-      });
-
-      const result = await res.json(); // ✅ CORRETO
-
-      alert(result.mensagem || "Lance enviado com sucesso!");
-
-      if (result.status === 'sucesso') {
-        atualizarLances();
-        event.target.reset();
-      }
-    } catch (error) {
-      alert("Erro ao enviar lance: " + error.message);
+    if (data.status === 'sucesso') {
+      document.getElementById("ultimo-lance-gremio").textContent = data.gremio.toFixed(2);
+      document.getElementById("ultimo-lance-inter").textContent = data.inter.toFixed(2);
+    } else {
+      console.error("Erro na resposta do servidor:", data.mensagem);
     }
+  } catch (e) {
+    console.error("Erro ao buscar lances:", e);
   }
+}
 
-  document.addEventListener("DOMContentLoaded", atualizarLances);
+document.addEventListener("DOMContentLoaded", atualizarLances);
 </script>
 </body>
 </html>
