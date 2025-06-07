@@ -150,35 +150,21 @@
     document.getElementById("modal").style.display = "none";
   }
 
- async function atualizarLances() {
+  async function atualizarLances() {
     try {
-      const res = await fetch('https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec');
-      
-      // Verifica se a resposta é OK (status 200-299)
-      if (!res.ok) {
-        throw new Error(`Erro HTTP! status: ${res.status}`);
-      }
-      
-      // Primeiro verifica o conteúdo da resposta
+      const res = await fetch(apiUrl);
       const text = await res.text();
-      console.log('Resposta bruta:', text); // Para debug
-      
       let data;
       try {
-        // Tenta parsear como JSON
         data = JSON.parse(text);
       } catch (e) {
-        // Se falhar, pode ser que a resposta não seja JSON
-        throw new Error(`Resposta não é JSON válido: ${text.substring(0, 50)}...`);
+        throw new Error(`Resposta inválida do servidor: ${text}`);
       }
 
       if (data && data.status === 'sucesso') {
-        document.getElementById("ultimo-lance-gremio").textContent = 
-          data.gremio ? data.gremio.toFixed(2) : '0.00';
-        document.getElementById("ultimo-lance-inter").textContent = 
-          data.inter ? data.inter.toFixed(2) : '0.00';
+        document.getElementById("ultimo-lance-gremio").textContent = data.gremio?.toFixed(2) || '0.00';
+        document.getElementById("ultimo-lance-inter").textContent = data.inter?.toFixed(2) || '0.00';
       } else {
-        console.error("Resposta inesperada:", data);
         document.getElementById("ultimo-lance-gremio").textContent = 'Erro';
         document.getElementById("ultimo-lance-inter").textContent = 'Erro';
       }
@@ -218,7 +204,6 @@
       }
 
       alert(result.mensagem || "Lance enviado!");
-
       if (result.status === 'sucesso') {
         fecharModal();
         atualizarLances();
