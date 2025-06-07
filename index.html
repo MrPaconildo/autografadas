@@ -139,6 +139,9 @@ if (window.location.hostname === 'mrpaconildo.github.io') {
   script.src = 'https://cdn.jsdelivr.net/gh/github/fetch@3.6.2/dist/fetch.umd.js';
   document.head.appendChild(script);
 }
+// Adicione esta linha NO TOPO do seu script
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec';
+
 async function enviarLance(event, camisa) {
   event.preventDefault();
   
@@ -150,7 +153,11 @@ async function enviarLance(event, camisa) {
   button.innerHTML = '<span class="spinner">⌛</span> Enviando...';
 
   try {
-    // Dados do formulário
+    // Verificação básica da URL
+    if (!WEB_APP_URL || WEB_APP_URL.includes('AKfycbz')) {
+      throw new Error('Configure corretamente a WEB_APP_URL no código');
+    }
+
     const payload = {
       nome: form.nome.value.trim(),
       telefone: form.telefone.value.trim(),
@@ -158,18 +165,17 @@ async function enviarLance(event, camisa) {
       camisa: camisa
     };
 
-    // Método 1: Tentativa com Fetch + CORS
+    // Método 1: Tentativa com Fetch
     let response;
     try {
       response = await fetch(WEB_APP_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-        mode: 'cors'
+        body: JSON.stringify(payload)
       });
     } catch (fetchError) {
       // Método 2: Fallback com XMLHttpRequest
-      response = await new Promise((resolve) => {
+      response = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', WEB_APP_URL);
         xhr.setRequestHeader('Content-Type', 'application/json');
@@ -177,11 +183,11 @@ async function enviarLance(event, camisa) {
           ok: xhr.status >= 200 && xhr.status < 300,
           json: () => Promise.resolve(JSON.parse(xhr.responseText))
         });
+        xhr.onerror = () => reject(new Error('Falha na conexão'));
         xhr.send(JSON.stringify(payload));
       });
     }
 
-    // Processa resposta
     const result = await response.json();
     
     if (result.status !== 'success') {
@@ -200,7 +206,6 @@ async function enviarLance(event, camisa) {
     button.textContent = originalText;
   }
 }
-
 async function atualizarLances() {
   try {
     const webAppUrl = 'https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec?cache=' + Date.now();
