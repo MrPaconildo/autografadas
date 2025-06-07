@@ -64,34 +64,48 @@
     input, button {
       padding: 0.5rem;
       font-size: 1rem;
+      border-radius: 4px;
+      border: 1px solid #ddd;
     }
     button {
       background-color: #007bff;
       color: white;
       border: none;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
     button:hover {
       background-color: #0056b3;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
     }
     @media (max-width: 768px) {
       .shirt-container {
         flex-direction: column;
         align-items: center;
       }
-      .spinner {
-  display: inline-block;
-  width: 1em;
-  height: 1em;
-  border: 2px solid rgba(255,255,255,.3);
-  border-radius: 50%;
-  border-top-color: #fff;
-  animation: spin 1s ease-in-out infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+    }
+    .spinner {
+      display: inline-block;
+      width: 1em;
+      height: 1em;
+      border: 2px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 5px;
+      vertical-align: middle;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    .error-message {
+      color: #dc3545;
+      font-size: 0.9rem;
+      margin-top: -0.5rem;
+      margin-bottom: 0.5rem;
     }
   </style>
 </head>
@@ -111,9 +125,9 @@
       <div class="gallery"><img src="Gremio.jpg" alt="Camisa Grêmio Autografada"></div>
       <div class="last-bid">Último lance: R$ <span id="ultimo-lance-gremio">...</span></div>
       <form onsubmit="enviarLance(event, 'Grêmio')">
-        <input type="text" name="nome" placeholder="Seu nome" required>
-        <input type="text" name="telefone" placeholder="Seu telefone" required>
-        <input type="number" name="lance" placeholder="Valor do lance" required>
+        <input type="text" name="nome" placeholder="Seu nome" required minlength="3">
+        <input type="text" name="telefone" placeholder="Seu telefone" required minlength="8">
+        <input type="number" name="lance" placeholder="Valor do lance" step="0.01" min="0.01" required>
         <button type="submit">Enviar Lance</button>
       </form>
     </div>
@@ -123,9 +137,9 @@
       <div class="gallery"><img src="Inter.jpg" alt="Camisa Internacional Autografada"></div>
       <div class="last-bid">Último lance: R$ <span id="ultimo-lance-inter">...</span></div>
       <form onsubmit="enviarLance(event, 'Inter')">
-        <input type="text" name="nome" placeholder="Seu nome" required>
-        <input type="text" name="telefone" placeholder="Seu telefone" required>
-        <input type="number" name="lance" placeholder="Valor do lance" required>
+        <input type="text" name="nome" placeholder="Seu nome" required minlength="3">
+        <input type="text" name="telefone" placeholder="Seu telefone" required minlength="8">
+        <input type="number" name="lance" placeholder="Valor do lance" step="0.01" min="0.01" required>
         <button type="submit">Enviar Lance</button>
       </form>
     </div>
@@ -133,13 +147,7 @@
 </main>
 
 <script>
-  // Fix para CORS
-if (window.location.hostname === 'mrpaconildo.github.io') {
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/gh/github/fetch@3.6.2/dist/fetch.umd.js';
-  document.head.appendChild(script);
-}
-// Adicione esta linha NO TOPO do seu script
+// URL do Web App (já com sua URL correta)
 const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec';
 
 async function enviarLance(event, camisa) {
@@ -150,14 +158,9 @@ async function enviarLance(event, camisa) {
   const originalText = button.textContent;
   
   button.disabled = true;
-  button.innerHTML = '<span class="spinner">⌛</span> Enviando...';
+  button.innerHTML = '<span class="spinner"></span> Enviando...';
 
   try {
-    // Verificação básica da URL
-    if (!WEB_APP_URL || WEB_APP_URL.includes('AKfycbz')) {
-      throw new Error('Configure corretamente a WEB_APP_URL no código');
-    }
-
     const payload = {
       nome: form.nome.value.trim(),
       telefone: form.telefone.value.trim(),
@@ -165,27 +168,19 @@ async function enviarLance(event, camisa) {
       camisa: camisa
     };
 
-    // Método 1: Tentativa com Fetch
-    let response;
-    try {
-      response = await fetch(WEB_APP_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-    } catch (fetchError) {
-      // Método 2: Fallback com XMLHttpRequest
-      response = await new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', WEB_APP_URL);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onload = () => resolve({
-          ok: xhr.status >= 200 && xhr.status < 300,
-          json: () => Promise.resolve(JSON.parse(xhr.responseText))
-        });
-        xhr.onerror = () => reject(new Error('Falha na conexão'));
-        xhr.send(JSON.stringify(payload));
-      });
+    // Validação adicional
+    if (isNaN(payload.lance) || payload.lance <= 0) {
+      throw new Error('Valor do lance inválido');
+    }
+
+    const response = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erro HTTP ${response.status}`);
     }
 
     const result = await response.json();
@@ -200,22 +195,17 @@ async function enviarLance(event, camisa) {
 
   } catch (error) {
     console.error('Erro detalhado:', error);
-    alert(`❌ Falha: ${error.message}`);
+    alert(`❌ ${error.message}`);
   } finally {
     button.disabled = false;
     button.textContent = originalText;
   }
 }
+
 async function atualizarLances() {
   try {
-    const webAppUrl = 'https://script.google.com/macros/s/AKfycbzAZzUaa-XRJq53YbidBt6hQhXHk2MB-I2_i5C3w_OIm7l5M6aqs9ep9VuSiN6eeiPM/exec?cache=' + Date.now();
+    const response = await fetch(`${WEB_APP_URL}?cache=${Date.now()}`);
     
-    const response = await fetch(webAppUrl, {
-      method: 'GET',
-      mode: 'no-cors', // Modo especial para contornar CORS
-      cache: 'no-store'
-    });
-
     if (!response.ok) {
       throw new Error('Falha ao carregar dados');
     }
@@ -233,7 +223,7 @@ async function atualizarLances() {
   }
 }
 
-// Configuração inicial
+// Inicialização
 document.addEventListener("DOMContentLoaded", () => {
   atualizarLances();
   setInterval(atualizarLances, 15000); // Atualiza a cada 15 segundos
