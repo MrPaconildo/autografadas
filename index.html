@@ -176,42 +176,37 @@
   }
 
   async function enviarLance(event) {
-    event.preventDefault();
-    const nome = document.getElementById("form-nome").value;
-    const telefone = document.getElementById("form-telefone").value;
-    const lance = document.getElementById("form-lance").value;
-    const camisa = document.getElementById("form-camisa").value;
+  event.preventDefault();
+  const nome = document.getElementById("form-nome").value;
+  const telefone = document.getElementById("form-telefone").value;
+  const lance = document.getElementById("form-lance").value;
+  const camisa = document.getElementById("form-camisa").value;
 
-    const formData = new URLSearchParams();
-    formData.append("nome", nome);
-    formData.append("telefone", telefone);
-    formData.append("lance", lance);
-    formData.append("camisa", camisa);
+  const formData = new URLSearchParams();
+  formData.append("nome", nome);
+  formData.append("telefone", telefone);
+  formData.append("lance", lance);
+  formData.append("camisa", camisa);
 
-    try {
-      const res = await fetch(apiUrl, {
-        method: "POST",
-        body: formData
-      });
+  try {
+    const res = await fetch(apiUrl, {
+      method: "POST",
+      body: formData,
+    });
 
-      const text = await res.text();
-      let result;
-      try {
-        result = JSON.parse(text);
-      } catch (e) {
-        alert("Erro inesperado ao interpretar resposta do servidor.");
-        return;
-      }
+    const result = await res.json(); // ✅ aqui está a correção
 
-      alert(result.mensagem || "Lance enviado!");
-      if (result.status === 'sucesso') {
-        fecharModal();
-        atualizarLances();
-      }
-    } catch (error) {
-      alert("Erro ao enviar lance: " + error.message);
+    alert(result.mensagem || "Lance enviado!");
+
+    if (result.status === 'sucesso') {
+      fecharModal();
+      atualizarLances();
     }
+  } catch (error) {
+    alert("Erro ao enviar lance: " + error.message);
   }
+}
+
 
   document.addEventListener("DOMContentLoaded", atualizarLances);
 </script>
